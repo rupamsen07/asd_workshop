@@ -3,9 +3,11 @@ const responseCache = new Map();
 function cacheResponse(req, res, next) {
     const cacheKey = req.originalUrl;
     if (responseCache.has(cacheKey)) {
+        res.setHeader('X-Cache', 'HIT');
         return res.json(responseCache.get(cacheKey));
     }
 
+    res.setHeader('X-Cache', 'MISS');
     const sendJson = res.json.bind(res);
     res.json = (body) => {
         responseCache.set(cacheKey, body);
