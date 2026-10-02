@@ -1,25 +1,12 @@
 const productRepository = require('../database/productRepository');
-const productCache = new Map();
 
 async function getProducts() {
-    if (!productCache.has('/products')) {
-        productCache.set('/products', await productRepository.getAll());
-    }
-    return productCache.get('/products');
+    return productRepository.getAll();
 }
 
 async function getProductById(id) {
-    const cacheKey = `/products/${id}`;
-    if (productCache.has(cacheKey)) {
-        return productCache.get(cacheKey);
-    }
-
     const products = await productRepository.getAll();
-    const product = products.find((item) => String(item.id) === id);
-    if (product) {
-        productCache.set(cacheKey, product);
-    }
-    return product;
+    return products.find((product) => String(product.id) === id);
 }
 
 module.exports = { getProducts, getProductById };
