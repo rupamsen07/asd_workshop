@@ -1,16 +1,21 @@
 const responseCache = new Map();
+const CACHE_TTL_MS = 60_000;
 
 function cacheResponse(req, res, next) {
     const cacheKey = req.originalUrl;
-    if (responseCache.has(cacheKey)) {
+    const cachedEntry = responseCache.get(cacheKey);
+    if (cachedEntry && Date.now() - cachedEntry.createdAt < CACHE_TTL_MS) {
         res.setHeader('X-Cache', 'HIT');
-        return res.json(responseCache.get(cacheKey));
+        return res.json(cachedEntry.value);
+    }
+    if (cachedEntry) {
+        responseCache.delete(cacheKey);
     }
 
     res.setHeader('X-Cache', 'MISS');
     const sendJson = res.json.bind(res);
     res.json = (body) => {
-        responseCache.set(cacheKey, body);
+        responseCache.set(cacheKey, { value: body, createdAt: Date.now() });
         return sendJson(body);
     };
 
