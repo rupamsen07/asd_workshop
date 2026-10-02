@@ -8,4 +8,8 @@ async function getAll() {
     return JSON.parse(data);
 }
 
-module.exports = { getAll };
+async function saveAll(products) {
+    await fs.writeFile(dataFilePath, `${JSON.stringify(products, null, 2)}\n`);
+}
+
+module.exports = { getAll, saveAll };

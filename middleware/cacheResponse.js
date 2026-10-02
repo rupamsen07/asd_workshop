@@ -15,4 +15,28 @@ function cacheResponse(req, res, next) {
     next();
 }
 
-module.exports = cacheResponse;
+function invalidateCache(req, res, next) {
+    let invalidated = false;
+    const clearOnSuccess = () => {
+        if (!invalidated && res.statusCode >= 200 && res.statusCode < 300) {
+            responseCache.clear();
+            invalidated = true;
+        }
+    };
+
+    const sendJson = res.json.bind(res);
+    res.json = (body) => {
+        clearOnSuccess();
+        return sendJson(body);
+    };
+
+    const endResponse = res.end.bind(res);
+    res.end = (...args) => {
+        clearOnSuccess();
+        return endResponse(...args);
+    };
+
+    next();
+}
+
+module.exports = { cacheResponse, invalidateCache };
